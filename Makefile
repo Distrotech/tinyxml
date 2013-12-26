@@ -15,7 +15,12 @@ PROFILE        := NO
 
 # TINYXML_USE_STL can be used to turn on STL support. NO, then STL
 # will not be used. YES will include the STL files.
-TINYXML_USE_STL := NO
+TINYXML_USE_STL := YES
+
+PREFIX = /usr
+LIBDIR = $(PREFIX)/lib
+INCDIR = $(PREFIX)/include
+INSTALL = ginstall
 
 #****************************************************************************
 
@@ -25,8 +30,8 @@ LD     := g++
 AR     := ar rc
 RANLIB := ranlib
 
-DEBUG_CFLAGS     := -Wall -Wno-format -g -DDEBUG
-RELEASE_CFLAGS   := -Wall -Wno-unknown-pragmas -Wno-format -O3
+DEBUG_CFLAGS     := -Wall -Wno-format -g -DDEBUG -fPIC
+RELEASE_CFLAGS   := -Wall -Wno-unknown-pragmas -Wno-format -O3 -fPIC
 
 LIBS		 :=
 
@@ -81,7 +86,7 @@ CXXFLAGS := ${CXXFLAGS} ${DEFS}
 # Targets of the build
 #****************************************************************************
 
-OUTPUT := xmltest
+OUTPUT := libtinyxml.so.2.6.2
 
 all: ${OUTPUT}
 
@@ -90,7 +95,7 @@ all: ${OUTPUT}
 # Source files
 #****************************************************************************
 
-SRCS := tinyxml.cpp tinyxmlparser.cpp xmltest.cpp tinyxmlerror.cpp tinystr.cpp
+SRCS := tinyxml.cpp tinyxmlparser.cpp tinyxmlerror.cpp tinystr.cpp
 
 # Add on the sources for libraries
 SRCS := ${SRCS}
@@ -102,7 +107,7 @@ OBJS := $(addsuffix .o,$(basename ${SRCS}))
 #****************************************************************************
 
 ${OUTPUT}: ${OBJS}
-	${LD} -o $@ ${LDFLAGS} ${OBJS} ${LIBS} ${EXTRA_LIBS}
+	${CXX} -o $@ -shared ${LDFLAGS} ${OBJS} ${LIBS} ${EXTRA_LIBS}
 
 #****************************************************************************
 # common rules
@@ -128,3 +133,13 @@ tinyxml.o: tinyxml.h tinystr.h
 tinyxmlparser.o: tinyxml.h tinystr.h
 xmltest.o: tinyxml.h tinystr.h
 tinyxmlerror.o: tinyxml.h tinystr.h
+
+install: $(OUTPUT)
+	$(INSTALL) -d $(DESTDIR)$(INCDIR) $(DESTDIR)$(LIBDIR)
+	$(INSTALL) -D $(OUTPUT) $(DESTDIR)$(LIBDIR)/
+	$(INSTALL) -D tinyxml.h tinystr.h $(DESTDIR)$(INCDIR)/
+	rm -f $(DESTDIR)$(LIBDIR)/libtinyxml.so.2.6 $(DESTDIR)$(LIBDIR)/libtinyxml.so.2 $(DESTDIR)$(LIBDIR)/libtinyxml.so
+	ln -s $(OUTPUT) $(DESTDIR)$(LIBDIR)/libtinyxml.so.2.6
+	ln -s libtinyxml.so.2.6 $(DESTDIR)$(LIBDIR)/libtinyxml.so.2
+	ln -s libtinyxml.so.2 $(DESTDIR)$(LIBDIR)/libtinyxml.so
+
